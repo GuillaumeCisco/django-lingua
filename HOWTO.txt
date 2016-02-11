@@ -15,9 +15,9 @@
     from django.db import models
     from lingua import translation
 
-    class Table(models.Model):
-        class Translation(translation.Translation):
-            name = models.CharField(max_length=32)
+    class Table(translation.TranslationModel):
+        name = models.CharField(max_length=32)
+        _translation_fields = ('name',)
 
 5. Active the admin(optional)
     from lingua.admin import LinguaModelAdmin
@@ -30,11 +30,15 @@
     
     admin.site.register( SomeModel, SomeAdminClass )
 
+   You can set `LINGUA_DEFAULT` to a specified language in you settings (default to 'en').
+   In the admin, it will display only your msgid and languages msgstr except for 'en' language
+   which is in most case the msgid language.
+
 6. Fill some data into the database to translate
 
 7. Run ./manage.py collectmessages
 
-    It will fetch all data to translate and store them into the file 'db_translation.html'.
+    It will fetch all data to translate and store them into the file 'extra_translations.py' for each app.
 
 8. Run django-admin.py makemessages -l <lang>
 
@@ -44,7 +48,7 @@
 10. Run django-admin.py compilemessages
 
 11. In the view you can use like <field_name>_<lang>, i.e. name_de or name_es.
-    Use <field_name>_00 to get the original value
+    Use <field_name>_00 to get the original value.
 
 Done!
 

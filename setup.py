@@ -2,10 +2,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='lingua',
-    version='0.8.2',
+    version='0.9.0',
     url='http://github.com/geomin/django-lingua',
-    maintainer='Georg Kasmin',
-    maintainer_email='georg@aquarianhouse.com',
+    maintainer='Guillaume Cisco',
+    maintainer_email='guillaumecisco@gmail.com',
     description='Django model translation on basis of gettext',
     classifiers=['License :: OSI Approved :: BSD License',
                  'Intended Audience :: Developers',

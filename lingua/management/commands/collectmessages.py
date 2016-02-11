@@ -1,59 +1,55 @@
-"""
-File: collectmessages.py
-
-Copyright (c) aquarianhouse.com | Georg Kasmin.
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    1. Redistributions of source code must retain the above copyright notice,
-       this list of conditions and the following disclaimer.
-
-    2. Redistributions in binary form must reproduce the above copyright
-       notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.
-
-    3. Neither the name of Django nor the names of its contributors may be used
-       to endorse or promote products derived from this software without
-       specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""
 from django.core.management import BaseCommand, CommandError
-from django.db import models
 from django.utils.encoding import smart_str
+from django.apps import apps
+from django.db import models, router, connections, DEFAULT_DB_ALIAS
+from collections import OrderedDict
+from django.utils.translation.trans_real import all_locale_paths, check_for_language, language_code_re, to_locale
+import gettext as gettext_module
+import os
+from django.core.files import File
+
 
 class Command(BaseCommand):
     help = "Translate database messages"
 
     requires_model_validation = False
 
+    def add_arguments(self, parser):
+        parser.add_argument('--database', action='store', dest='database',
+                            default=DEFAULT_DB_ALIAS, help='Nominates a database to synchronize. '
+                                                           'Defaults to the "default" database.')
+
     def handle(self, *args, **options):
         db_values = []
-        """ Taken from django.core.management.commands.syncdb"""
-        for app in models.get_apps():
-            model_list = models.get_models(app, include_auto_created=True)
+        db = options.get('database')
+        connection = connections[db]
+        connection.prepare_database()
 
-            """Performance is not so important, we do it once... """
+        # Build the manifest of apps and models that are to be synchronized
+        all_models = [
+            (app_config.label,
+             router.get_migratable_models(app_config, connection.alias, include_auto_created=False))
+            for app_config in apps.get_app_configs()
+            ]
+
+        for app_name, model_list in all_models:
             for m in model_list:
-                if hasattr(m, '_translation_fields'):
-                    for x in m._translation_fields:
+                if hasattr(m._meta, '_translation_fields'):
+                    for x in m._meta._translation_fields:
                         for y in m.objects.all():
-                            db_values.append( getattr(y, x) )
+                            db_values.append(getattr(y, x))
 
-        #print db_values
-        f = file('db_translation.html', "w")
-        """ blocktrans and we dont have to worry about to escape the string etc."""   
-        for v in db_values:            
-            f.write('{%% blocktrans %%}%s{%% endblocktrans %%}\n' % smart_str(v))
-        f.close()
+                    path = apps.app_configs[app_name].path
+                    # print db_values
+                    with open(os.path.join(path, 'extra_translations.py'), 'w') as f:
+                        translations_file = File(f)
+                        translations_file.write('''# encoding: utf-8
+
+from __future__ import unicode_literals, absolute_import
+from django.utils.translation import ugettext_lazy as _
+
+translations = (
+''')
+                        for v in db_values:
+                            translations_file.write("""    _('%s'),\n""" % smart_str(v.replace('\'', '\\\'')))
+                        translations_file.write(')')

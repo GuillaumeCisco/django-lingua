@@ -1,3 +1,12 @@
+Version 0.9.0
+-------------
+- adapt code for supporting Django >= 1.9
+- Use py file instead of an html file with trans.
+- Place created translations python file in each related app. Better maintainability.
+- Inherits from an abstract Translation Model
+- Rework admin
+- Add LINGUA_DEFAULT settings (set the msgid key language, default to 'en').
+
 Version 0.8.0
 --------------
 - access direct the field translation i.e. <field>_<lang> name_de or name_es

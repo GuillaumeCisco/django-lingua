@@ -2,15 +2,19 @@
 Django Lingua Changelog
 ========================
 
-Version 0.1, 22nd February 2010
+Version 0.9.0, 11th February 2016
 ========================
-Initial Release
+Version 0.9.0
+
+Version 0.8.1, 13th November 2010
+========================
+Version 0.8.1
 
 Version 0.8.0, 12th November 2010
 ========================
 Version 0.8.0
 
-Version 0.8.1, 13th November 2010
+Version 0.1, 22nd February 2010
 ========================
-Version 0.8.1
+Initial Release
 

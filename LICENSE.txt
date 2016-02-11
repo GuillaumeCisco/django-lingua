@@ -1,3 +1,6 @@
+Copyright (c) Guillaume Cisco
+
+
 Copyright (c) aquarianhouse.com | Georg Kasmin.
 All rights reserved.
 

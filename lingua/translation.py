@@ -21,7 +21,7 @@ class TranslationModel(models.Model):
 
                 if lang in _languages:
                     activate(lang)
-                    value = unicode(_(getattr(self, v)))
+                    value = unicode(_(getattr(klass, v)))
                     deactivate()
 
                     return value

@@ -34,8 +34,8 @@ class Command(BaseCommand):
 
         for app_name, model_list in all_models:
             for m in model_list:
-                if hasattr(m._meta, '_translation_fields'):
-                    for x in m._meta._translation_fields:
+                if hasattr(m, '_translation_fields'):
+                    for x in m._translation_fields:
                         for y in m.objects.all():
                             db_values.append(getattr(y, x))
 
